@@ -20,7 +20,7 @@ A Windows desktop file search application built with WPF and .NET 8.
 ## Run
 
 ```powershell
-dotnet run --project .\FindAnyFile\BetterSearch.csproj
+dotnet run --project .\BetterSearch\BetterSearch.csproj
 ```
 
 ## Standalone Launch
@@ -46,7 +46,7 @@ dotnet build .\BetterSearch.sln
 ## Publish
 
 ```powershell
-dotnet publish .\FindAnyFile\BetterSearch.csproj -c Release -r win-x64 --self-contained true -o .\publish\BetterSearch-win-x64
+dotnet publish .\BetterSearch\BetterSearch.csproj -c Release -r win-x64 --self-contained true -o .\publish\BetterSearch-win-x64
 ```
 
 ## Notes
