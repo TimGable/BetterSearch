@@ -1,0 +1,22 @@
+# Build output
+bin/
+obj/
+publish/
+
+# Visual Studio / VS Code local state
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+
+# Local agent/session metadata
+.agents/
+.codex/
+
+# Nested temporary checkout
+tmp-ourmediaarchive/

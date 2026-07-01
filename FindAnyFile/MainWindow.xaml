@@ -1,0 +1,342 @@
+<Window x:Class="BetterSearch.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="BetterSearch" Height="760" Width="1220" MinHeight="620" MinWidth="960"
+        Background="#F4F6F8" WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <SolidColorBrush x:Key="PanelBorder" Color="#D3DAE3"/>
+        <SolidColorBrush x:Key="PanelBackground" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="TextPrimary" Color="#17202A"/>
+        <SolidColorBrush x:Key="TextSecondary" Color="#5D6978"/>
+
+        <Style TargetType="Button">
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#C9D2DE"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="#1F6FEB"/>
+            <Setter Property="BorderBrush" Value="#1F6FEB"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+        </Style>
+
+        <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Width" Value="36"/>
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="15"/>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="Padding" Value="9,6"/>
+            <Setter Property="BorderBrush" Value="#C9D2DE"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="Padding" Value="7,4"/>
+            <Setter Property="BorderBrush" Value="#C9D2DE"/>
+        </Style>
+
+        <Style TargetType="CheckBox">
+            <Setter Property="Margin" Value="0,6,0,0"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+        </Style>
+
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+            <Setter Property="Margin" Value="0,11,0,4"/>
+        </Style>
+
+        <Style x:Key="ResultCellText" TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+        </Style>
+
+        <Style x:Key="ResultMetaText" TargetType="TextBlock" BasedOn="{StaticResource ResultCellText}">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+        </Style>
+
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#F7F9FC"/>
+            <Setter Property="Foreground" Value="#445161"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="BorderBrush" Value="#DDE3EA"/>
+            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+        </Style>
+
+        <Style TargetType="DataGridCell">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#DCEBFF"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="DataGridRow">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Style.Triggers>
+                <Trigger Property="AlternationIndex" Value="1">
+                    <Setter Property="Background" Value="#FAFBFD"/>
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#EFF6FF"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#DCEBFF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <DockPanel>
+        <Menu DockPanel.Dock="Top" Background="#FFFFFF" BorderBrush="{StaticResource PanelBorder}" BorderThickness="0,0,0,1">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Open" InputGestureText="Enter" Click="OpenMenuItem_Click"/>
+                <MenuItem Header="Open Containing _Folder" Click="OpenFolderMenuItem_Click"/>
+                <Separator/>
+                <MenuItem Header="_Rebuild Index" InputGestureText="F5" Click="RefreshButton_Click"/>
+                <MenuItem Header="_Cancel Indexing" Click="CancelButton_Click"/>
+                <Separator/>
+                <MenuItem Header="E_xit" Click="ExitMenuItem_Click"/>
+            </MenuItem>
+            <MenuItem Header="_Edit">
+                <MenuItem Header="_Copy Path" InputGestureText="Ctrl+C" Click="CopyPathMenuItem_Click"/>
+                <MenuItem Header="Copy _Name" Click="CopyNameMenuItem_Click"/>
+                <Separator/>
+                <MenuItem Header="Select _All Results" InputGestureText="Ctrl+A" Click="SelectAllResultsMenuItem_Click"/>
+            </MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem x:Name="ShowOptionsMenuItem" Header="Show _Options" IsCheckable="True" IsChecked="True" Click="ShowOptionsMenuItem_Click"/>
+                <MenuItem Header="_Refresh Drives" Click="RefreshDrivesMenuItem_Click"/>
+            </MenuItem>
+            <MenuItem Header="_Search">
+                <MenuItem Header="_Focus Search" InputGestureText="Ctrl+F" Click="FocusSearchMenuItem_Click"/>
+                <MenuItem Header="_Rebuild Index" InputGestureText="F5" Click="RefreshButton_Click"/>
+                <Separator/>
+                <MenuItem x:Name="CaseSensitiveMenuItem" Header="_Case Sensitive" IsCheckable="True" Click="CaseSensitiveMenuItem_Click"/>
+                <MenuItem x:Name="NamesOnlyMenuItem" Header="Search File _Names Only" IsCheckable="True" Click="NamesOnlyMenuItem_Click"/>
+            </MenuItem>
+        </Menu>
+
+        <StatusBar DockPanel.Dock="Bottom" Background="#FFFFFF" BorderBrush="{StaticResource PanelBorder}" BorderThickness="0,1,0,0">
+            <StatusBarItem>
+                <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource TextSecondary}"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock Text="{Binding ResultCountText}" Foreground="{StaticResource TextSecondary}"/>
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <ProgressBar Width="170" Height="8" IsIndeterminate="{Binding IsIndexing}"/>
+            </StatusBarItem>
+        </StatusBar>
+
+        <Grid Margin="18">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <DockPanel Grid.Row="0" Margin="0,0,0,14">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button x:Name="RefreshButton" Style="{StaticResource PrimaryButton}" Content="Rebuild Index" Width="122" Click="RefreshButton_Click"/>
+                    <Button x:Name="CancelButton" Content="Cancel" Width="82" Margin="8,0,0,0" Click="CancelButton_Click" IsEnabled="False"/>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="BetterSearch" FontSize="26" FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}"/>
+                    <TextBlock Text="Fast indexed search across selected Windows drives" FontSize="13" Foreground="{StaticResource TextSecondary}" Margin="0,3,0,0"/>
+                </StackPanel>
+            </DockPanel>
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="280"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border x:Name="OptionsPanel" Grid.Column="0" Background="{StaticResource PanelBackground}" BorderBrush="{StaticResource PanelBorder}" BorderThickness="1">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="16">
+                            <TextBlock Text="Search Options" Style="{StaticResource SectionTitle}"/>
+
+                            <CheckBox x:Name="IncludeFilesCheckBox" Content="Files" IsChecked="True" Checked="SearchOptionChanged" Unchecked="SearchOptionChanged"/>
+                            <CheckBox x:Name="IncludeFoldersCheckBox" Content="Folders" IsChecked="True" Checked="SearchOptionChanged" Unchecked="SearchOptionChanged"/>
+                            <CheckBox x:Name="CaseSensitiveCheckBox" Content="Case sensitive" Checked="CaseSensitiveCheckBox_Changed" Unchecked="CaseSensitiveCheckBox_Changed"/>
+
+                            <TextBlock Text="Match Against" Style="{StaticResource FieldLabel}"/>
+                            <ComboBox x:Name="ScopeComboBox" SelectionChanged="SearchOptionChanged" SelectedIndex="0">
+                                <ComboBoxItem Content="Full path"/>
+                                <ComboBoxItem Content="File name only"/>
+                            </ComboBox>
+
+                            <TextBlock Text="Include Extensions" Style="{StaticResource FieldLabel}"/>
+                            <TextBox x:Name="IncludeExtensionsBox" TextChanged="SearchOptionChanged" ToolTip="Examples: pdf, docx, png"/>
+
+                            <TextBlock Text="Exclude Extensions" Style="{StaticResource FieldLabel}"/>
+                            <TextBox x:Name="ExcludeExtensionsBox" TextChanged="SearchOptionChanged" ToolTip="Examples: tmp, log, bak"/>
+
+                            <TextBlock Text="Result Limit" Style="{StaticResource FieldLabel}"/>
+                            <ComboBox x:Name="ResultLimitComboBox" SelectionChanged="SearchOptionChanged" SelectedIndex="1">
+                                <ComboBoxItem Content="250"/>
+                                <ComboBoxItem Content="1000"/>
+                                <ComboBoxItem Content="5000"/>
+                                <ComboBoxItem Content="10000"/>
+                            </ComboBox>
+
+                            <Separator Margin="0,16,0,14"/>
+                            <DockPanel Margin="0,0,0,4">
+                                <Button DockPanel.Dock="Right" Content="All" Width="54" Height="28" Padding="0" Click="SelectAllDrivesButton_Click"/>
+                                <TextBlock Text="Drives" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
+                            </DockPanel>
+
+                            <ItemsControl ItemsSource="{Binding Drives}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" Checked="DriveSelectionChanged" Unchecked="DriveSelectionChanged">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}"/>
+                                                <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                                            </StackPanel>
+                                        </CheckBox>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <Grid Grid.Column="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="{StaticResource PanelBorder}" BorderThickness="1" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="44"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                       VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#65758A"/>
+                            <TextBox x:Name="SearchBox" Grid.Column="1" Height="46" BorderThickness="0" Background="Transparent"
+                                     FontSize="18" Padding="0,10,12,10" VerticalContentAlignment="Center"
+                                     TextChanged="SearchBox_TextChanged"/>
+                            <TextBlock Grid.Column="2" Text="{Binding ResultCountText}" FontSize="13"
+                                       Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" Margin="12,0,14,0"/>
+                        </Grid>
+                    </Border>
+
+                    <DataGrid x:Name="ResultsGrid" Grid.Row="1" ItemsSource="{Binding Results}" AutoGenerateColumns="False"
+                              IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False"
+                              GridLinesVisibility="None" HeadersVisibility="Column"
+                              Background="#FFFFFF" BorderBrush="{StaticResource PanelBorder}" BorderThickness="1"
+                              RowHeight="50" ColumnHeaderHeight="36" SelectionMode="Extended"
+                              AlternationCount="2" RowHeaderWidth="0"
+                              EnableRowVirtualization="True" EnableColumnVirtualization="True"
+                              MouseDoubleClick="ResultsGrid_MouseDoubleClick">
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Open" Click="OpenMenuItem_Click"/>
+                                <MenuItem Header="Open Containing Folder" Click="OpenFolderMenuItem_Click"/>
+                                <Separator/>
+                                <MenuItem Header="Copy Path" Click="CopyPathMenuItem_Click"/>
+                                <MenuItem Header="Copy Name" Click="CopyNameMenuItem_Click"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="File" Width="3*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Grid VerticalAlignment="Center">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="34"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Width="26" Height="26" CornerRadius="5" Background="#F1F4F8"
+                                                    VerticalAlignment="Center" HorizontalAlignment="Left">
+                                                <Image Source="{Binding IconSource}" Width="16" Height="16"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       SnapsToDevicePixels="True"/>
+                                            </Border>
+
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" Style="{StaticResource ResultCellText}" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding DisplayFolder}" Style="{StaticResource ResultMetaText}" Margin="0,3,0,0"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTemplateColumn Header="Type" Width="105">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#EEF2F6" CornerRadius="4" Padding="7,3" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Type}" FontSize="12" FontWeight="SemiBold" Foreground="#445161"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTextColumn Header="Drive" Binding="{Binding Drive}" Width="78">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource ResultMetaText}"/>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
+                            <DataGridTextColumn Header="Full Path" Binding="{Binding Path}" Width="4*">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource ResultMetaText}"/>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <DockPanel Grid.Row="2" Margin="0,12,0,0">
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <Button x:Name="OpenButton" Content="Open" Width="82" Margin="0,0,8,0" Click="OpenButton_Click"/>
+                            <Button x:Name="OpenFolderButton" Content="Open Folder" Width="112" Click="OpenFolderButton_Click"/>
+                        </StackPanel>
+                        <TextBlock Text="{Binding IndexSummaryText}" VerticalAlignment="Center" Foreground="{StaticResource TextSecondary}"/>
+                    </DockPanel>
+                </Grid>
+            </Grid>
+        </Grid>
+    </DockPanel>
+</Window>
