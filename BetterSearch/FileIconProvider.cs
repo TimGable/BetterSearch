@@ -9,6 +9,7 @@ namespace BetterSearch;
 
 public static class FileIconProvider
 {
+    // SHGetFileInfo returns the same icon Windows Explorer uses for folders and file extensions.
     private const uint ShgfiIcon = 0x000000100;
     private const uint ShgfiSmallIcon = 0x000000001;
     private const uint ShgfiUseFileAttributes = 0x000000010;
@@ -19,6 +20,7 @@ public static class FileIconProvider
 
     public static ImageSource? GetIcon(string extension, bool isDirectory)
     {
+        // Cache by type instead of by full path so thousands of files do not cause thousands of shell calls.
         var key = isDirectory ? "<folder>" : string.IsNullOrWhiteSpace(extension) ? "<file>" : extension.TrimStart('.');
         return IconCache.GetOrAdd(key, _ => LoadShellIcon(extension, isDirectory));
     }
@@ -26,6 +28,7 @@ public static class FileIconProvider
     private static ImageSource? LoadShellIcon(string extension, bool isDirectory)
     {
         var attributes = isDirectory ? FileAttributeDirectory : FileAttributeNormal;
+        // The shell can resolve an icon from attributes alone, so the file does not need to actually exist.
         var lookupPath = isDirectory
             ? "folder"
             : string.IsNullOrWhiteSpace(extension)
@@ -50,11 +53,13 @@ public static class FileIconProvider
                 fileInfo.hIcon,
                 Int32Rect.Empty,
                 BitmapSizeOptions.FromWidthAndHeight(16, 16));
+            // Freeze the image so WPF can safely reuse it across bindings.
             source.Freeze();
             return source;
         }
         finally
         {
+            // SHGetFileInfo hands back a native icon handle; WPF copies it, but we still own the handle.
             DestroyIcon(fileInfo.hIcon);
         }
     }

@@ -8,6 +8,7 @@ public enum SearchScope
 
 public sealed class SearchSettings
 {
+    // This object is the bridge between the UI controls and the index/search code.
     public bool CaseSensitive { get; set; }
 
     public bool IncludeFiles { get; set; } = true;
@@ -26,6 +27,7 @@ public sealed class SearchSettings
 
     public SearchSettings Clone()
     {
+        // Copy the drive set so callers can keep a stable settings snapshot while the UI changes.
         return new SearchSettings
         {
             CaseSensitive = CaseSensitive,

@@ -68,6 +68,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
+        // Start with a ready-to-search window: load drives, focus the search box, then build the first index.
         RefreshDriveList();
         SearchBox.Focus();
         await RebuildIndexAsync();
@@ -75,6 +76,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void MainWindow_KeyDown(object sender, KeyEventArgs e)
     {
+        // Keep the keyboard shortcuts close to the window so they work no matter which control has focus.
         if (e.Key == Key.F5)
         {
             _ = RebuildIndexAsync();
@@ -117,12 +119,14 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void CaseSensitiveCheckBox_Changed(object sender, RoutedEventArgs e)
     {
+        // The menu and checkbox control the same setting, so keep them in sync before searching again.
         CaseSensitiveMenuItem.IsChecked = CaseSensitiveCheckBox.IsChecked == true;
         QueueSearch();
     }
 
     private void DriveSelectionChanged(object sender, RoutedEventArgs e)
     {
+        // Drive changes affect what gets indexed, so they wait for the next rebuild instead of changing results silently.
         IndexSummaryText = "Drive selection changed. Rebuild the index to apply it.";
     }
 
@@ -191,6 +195,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void NamesOnlyMenuItem_Click(object sender, RoutedEventArgs e)
     {
+        // The menu item mirrors the dropdown to keep both entry points behaving the same way.
         ScopeComboBox.SelectedIndex = NamesOnlyMenuItem.IsChecked ? 1 : 0;
         QueueSearch();
     }
@@ -212,6 +217,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private async Task RebuildIndexAsync()
     {
+        // Starting a new rebuild cancels the old one so two scans do not fight over the same UI state.
         _indexCancellation?.Cancel();
         _indexCancellation = new CancellationTokenSource();
         var token = _indexCancellation.Token;
@@ -229,6 +235,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         ResultCountText = "Indexing";
 
         var started = DateTimeOffset.Now;
+        // Progress comes back from worker threads, but Progress<T> marshals it safely onto the UI thread.
         var progress = new Progress<IndexProgress>(p =>
         {
             var driveText = p.TotalDrives > 0 ? $" Drive {p.DrivesComplete}/{p.TotalDrives}." : string.Empty;
@@ -242,6 +249,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             var elapsed = DateTimeOffset.Now - started;
             StatusText = $"{count:N0} items indexed in {elapsed.TotalSeconds:N1}s. Search is ready.";
             IndexSummaryText = $"{count:N0} indexed items across {settings.SelectedDriveRoots.Count} selected drive(s).";
+            // If the user already typed a query, show the matching results as soon as the new index is ready.
             RunSearch();
         }
         catch (OperationCanceledException)
@@ -259,6 +267,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void RefreshDriveList()
     {
+        // Preserve checked drives when refreshing so plugging in a new drive does not reset the user's choices.
         var selected = Drives.Where(d => d.IsSelected).Select(d => d.Root).ToHashSet(StringComparer.OrdinalIgnoreCase);
         Drives.Clear();
 
@@ -288,6 +297,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void RunSearch()
     {
+        // Keep the menu state updated even when the dropdown changed the search scope.
         NamesOnlyMenuItem.IsChecked = ScopeComboBox.SelectedIndex == 1;
 
         var query = SearchBox.Text.Trim();
@@ -301,6 +311,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         var settings = BuildSearchSettings();
         var matches = _indexService.Search(query, settings);
+        // ObservableCollection keeps the grid updated without rebuilding the whole view.
         foreach (var match in matches)
         {
             Results.Add(match);
@@ -313,6 +324,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private SearchSettings BuildSearchSettings()
     {
+        // Read the UI in one place so indexing and searching always use the same options.
         return new SearchSettings
         {
             CaseSensitive = CaseSensitiveCheckBox.IsChecked == true,
@@ -346,6 +358,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         try
         {
+            // Let Windows decide how to open the selected file, just like double-clicking it in Explorer.
             Process.Start(new ProcessStartInfo
             {
                 FileName = result.Path,
@@ -354,6 +367,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
         catch
         {
+            // If a file cannot be opened directly, showing it in its folder is still useful.
             OpenFolder(result);
         }
     }
@@ -395,6 +409,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         Process.Start(new ProcessStartInfo
         {
             FileName = "explorer.exe",
+            // Files are selected in Explorer; folders are opened directly.
             Arguments = result.IsDirectory ? $"\"{path}\"" : $"/select,\"{result.Path}\"",
             UseShellExecute = true
         });

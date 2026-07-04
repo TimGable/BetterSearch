@@ -10,6 +10,7 @@ public sealed class DriveSelection : INotifyPropertyChanged
 
     public DriveSelection(DriveInfo drive)
     {
+        // Store the root separately because it is the value passed back into the indexer.
         Root = drive.RootDirectory.FullName;
         Name = string.IsNullOrWhiteSpace(drive.VolumeLabel) ? Root : $"{Root} {drive.VolumeLabel}";
         Description = $"{drive.DriveType} drive";
@@ -33,6 +34,7 @@ public sealed class DriveSelection : INotifyPropertyChanged
                 return;
             }
 
+            // The checkbox binding listens for this so drive changes update without rebuilding the list.
             _isSelected = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
         }

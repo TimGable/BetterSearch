@@ -6,6 +6,7 @@ namespace BetterSearch;
 
 public sealed class FileIndexService
 {
+    // Each directory is scanned one level at a time so the worker queue controls the traversal.
     private static readonly EnumerationOptions FastEnumerationOptions = new()
     {
         AttributesToSkip = FileAttributes.System,
@@ -30,6 +31,7 @@ public sealed class FileIndexService
 
     public IReadOnlyList<DriveInfo> GetSearchableDrives()
     {
+        // Skip drives Windows reports as unavailable so indexing does not hang on empty card readers or offline paths.
         return DriveInfo.GetDrives()
             .Where(d => d.IsReady && IsSearchableDrive(d.DriveType))
             .OrderBy(d => d.Name, StringComparer.OrdinalIgnoreCase)
@@ -38,6 +40,8 @@ public sealed class FileIndexService
 
     public async Task<int> RebuildAsync(SearchSettings settings, IProgress<IndexProgress> progress, CancellationToken cancellationToken)
     {
+        // Build a fresh snapshot first, then swap it in once scanning is complete.
+        // That keeps the old index usable if the user cancels halfway through.
         var drives = GetSearchableDrives()
             .Where(d => settings.SelectedDriveRoots.Count == 0 || settings.SelectedDriveRoots.Contains(d.RootDirectory.FullName))
             .ToArray();
@@ -46,6 +50,7 @@ public sealed class FileIndexService
         var counters = new IndexCounters();
         var completedDrives = 0;
 
+        // Drive scans run in parallel, while each drive also manages its own queue of folders.
         await Task.Run(() =>
         {
             Parallel.ForEach(
@@ -77,6 +82,7 @@ public sealed class FileIndexService
 
     public IReadOnlyList<FileSearchResult> Search(string query, SearchSettings settings)
     {
+        // Treat spaces as separate required terms, which makes broad path searches feel predictable.
         var terms = query.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         if (terms.Length == 0)
         {
@@ -86,6 +92,7 @@ public sealed class FileIndexService
         List<FileSearchResult> snapshot;
         lock (_syncRoot)
         {
+            // Search against a stable reference so the UI is not reading a list while it is being replaced.
             snapshot = _items;
         }
 
@@ -117,6 +124,7 @@ public sealed class FileIndexService
         var activeDirectories = 0;
         var workers = Math.Clamp(Environment.ProcessorCount, 2, 10);
 
+        // Workers share one folder queue so slow or protected branches do not hold up the whole scan.
         Parallel.For(
             0,
             workers,
@@ -168,6 +176,7 @@ public sealed class FileIndexService
         }
         catch (Exception ex) when (ex is UnauthorizedAccessException or IOException or DirectoryNotFoundException)
         {
+            // Normal Windows folders can disappear or deny access while indexing. Just skip them and keep going.
             return;
         }
 
@@ -187,6 +196,7 @@ public sealed class FileIndexService
         }
         catch (Exception ex) when (ex is UnauthorizedAccessException or IOException or DirectoryNotFoundException)
         {
+            // File enumeration has the same access issues as folders, especially under system directories.
             return;
         }
 
@@ -240,6 +250,7 @@ public sealed class FileIndexService
 
     private static HashSet<string> ParseExtensions(string value)
     {
+        // Accept the common ways people type extension lists: "pdf docx", "pdf,docx", or ".pdf; .docx".
         return value
             .Split([',', ';', ' '], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(ext => ext.TrimStart('.'))
