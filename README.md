@@ -4,7 +4,6 @@ A Windows desktop file search application built with WPF and .NET 8.
 
 ## Features
 
-- WPF desktop interface with `File`, `Edit`, `View`, and `Search` menus.
 - Scans selected ready fixed, removable, and network drives.
 - Builds an in-memory index of files and folders using parallel directory workers for faster indexing.
 - Searches instantly after the index is built.
